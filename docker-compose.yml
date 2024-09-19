@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  psql:
+    image: postgres:14-alpine
+    environment:
+      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "${DB_PORT}:5432"
+    volumes:
+      - psql_volume:/var/lib/postgresql/data
+    networks:
+      - dis_network
+
+  auth:
+   build:
+     context: .
+     dockerfile: DockerFile
+   volumes:
+     - ./:/go/src/auth_service
+   ports:
+     - '8010:8010'
+   depends_on:
+     - auth_db
+   networks:
+     - dis_network
+   links:
+     - auth_db
+   environment:
+     GOPATH: /go/
+   restart: on-failure
+   tty: true
+
+volumes:
+  psql_volume:
